@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happy National Girlfriend Day, Sarvinoz 💛</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0d0d10;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .title {
+    font-size: clamp(18px, 5vw, 30px);
+    font-weight: 700;
+    color: #ff8fb0;
+    text-align: center;
+    margin-bottom: 18px;
+  }
+  .stage {
+    position: relative;
+    width: min(560px, 94vw);
+    height: min(560px, 94vw);
+    background: #0d0d10;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .tg {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 20px;
+    padding: 12px 26px;
+    background: #229ED9;
+    color: #fff;
+    border-radius: 999px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 16px;
+  }
+  .tg:hover { background: #1c8ac0; }
+</style>
+</head>
+<body>
+  <div class="title">Happy National Girlfriend Day 💛</div>
+  <div class="stage">
+    <canvas id="c"></canvas>
+  </div>
+  <a class="tg" href="https://t.me/callmeusmon">✈ Press here</a>
+
+<script>
+(function(){
+  const cv = document.getElementById('c');
+  const ctx = cv.getContext('2d');
+
+  let W, H, dpr;
+  function resize(){
+    dpr = window.devicePixelRatio || 1;
+    const r = cv.getBoundingClientRect();
+    W = r.width; H = r.height;
+    cv.width = W * dpr; cv.height = H * dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const PINK = '#ffb6c1';
+  const scales = [11,12,13,14,15,16];
+  const ringText = ['I love you','Sarvinoz','I love you','Sarvinoz','I love you','Sarvinoz'];
+  const N = 120;
+
+  function ringPoints(scale, unit){
+    const pts = [];
+    for(let i=0;i<N;i++){
+      const a = i * (2*Math.PI)/N;
+      const x = 16*Math.pow(Math.sin(a),3) * scale * unit;
+      const y = (13*Math.cos(a) - 5*Math.cos(2*a) - 2*Math.cos(3*a) - Math.cos(4*a)) * scale * unit;
+      pts.push({x, y});
+    }
+    return pts;
+  }
+
+  let floaters = [];
+  function spawnFloater(){
+    floaters.push({
+      x: Math.random()*W, y: H + 20,
+      size: 8 + Math.random()*14,
+      speed: 0.3 + Math.random()*0.9,
+      drift: (Math.random()-0.5)*0.6,
+      alpha: 0.12 + Math.random()*0.28,
+      phase: Math.random()*Math.PI*2
+    });
+  }
+  function drawMiniHeart(x,y,s,color,alpha){
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    const k = s/16;
+    for(let i=0;i<=N;i++){
+      const a = i*(2*Math.PI)/N;
+      const px = x + 16*Math.pow(Math.sin(a),3)*k;
+      const py = y - (13*Math.cos(a)-5*Math.cos(2*a)-2*Math.cos(3*a)-Math.cos(4*a))*k;
+      if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  let start = performance.now();
+  const DRAW_MS = 2600;
+
+  function frame(now){
+    const t = (now - start);
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = '#0d0d10';
+    ctx.fillRect(0,0,W,H);
+
+    const cx = W/2, cy = H/2;
+    // Fit the heart to the canvas. Curve spans about x=[-16,16], y=[-17,12] before scale.
+    // Largest ring uses scale 16, so half-width ~ 16*16=256 units. Fit that into ~44% of canvas.
+    const unit = (Math.min(W, H) * 0.44) / (16 * 16);
+
+    const bt = now/1000;
+    const pulse = 1 + 0.05*Math.max(0, Math.sin(bt*3)) + 0.03*Math.max(0,Math.sin(bt*3 - 0.4));
+
+    // floating background hearts (always on)
+    if(Math.random() < 0.08) spawnFloater();
+    for(const f of floaters){
+      f.y -= f.speed;
+      f.x += f.drift + Math.sin((now/1000)+f.phase)*0.3;
+    }
+    floaters = floaters.filter(f => f.y > -30);
+    for(const f of floaters){ drawMiniHeart(f.x, f.y, f.size, PINK, f.alpha); }
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // Fixed small font so words stay tiny and the heart reads clearly.
+    const fontPx = Math.max(6, Math.round(Math.min(W,H) * 0.016));
+    ctx.font = '700 ' + fontPx + 'px Arial, sans-serif';
+
+    const totalPts = scales.length * N;
+    const revealed = t < DRAW_MS ? Math.floor((t/DRAW_MS)*totalPts) : totalPts;
+
+    let count = 0;
+    for(let si=0; si<scales.length; si++){
+      const pts = ringPoints(scales[si], unit*pulse);
+      const text = ringText[si];
+      ctx.fillStyle = PINK;
+      for(let i=0;i<pts.length;i++){
+        if(count >= revealed) { si = scales.length; break; }
+        const p = pts[i];
+        ctx.fillText(text, cx + p.x, cy - p.y);
+        count++;
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
